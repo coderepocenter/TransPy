@@ -12,8 +12,10 @@ from pyproj import CRS
 from transpy import split_linestring, split_linestring_df
 from shapely.geometry import LineString, Point, MultiLineString
 
+from transpy.utils import to_chunk
 
-class TestUtils(TestCase):
+
+class TestSplitLineString(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls._geometry_samples = [
@@ -48,7 +50,7 @@ class TestUtils(TestCase):
     def get_sample_LineString_gdf_epsg_3857(
             max_length: int = 2,
             n_geometry: int = 4) -> gpd.GeoDataFrame:
-        ls_iterator = TestUtils.get_sample_LineString_list(max_length, n_geometry)
+        ls_iterator = TestSplitLineString.get_sample_LineString_list(max_length, n_geometry)
         gdf = gpd.GeoDataFrame(
             data={
                 'id': list(range(n_geometry)),
@@ -114,7 +116,7 @@ class TestUtils(TestCase):
     def test_split_linestring_05(self):
         max_length = 2
         n_geometry = 4
-        ls_iterator = TestUtils.get_sample_LineString_list(max_length, n_geometry)
+        ls_iterator = TestSplitLineString.get_sample_LineString_list(max_length, n_geometry)
 
 
         results = split_linestring(ls_iterator, max_length)
@@ -127,7 +129,7 @@ class TestUtils(TestCase):
     def test_split_linestring_06(self):
         max_length = 2
         n_geometry = 500
-        ls_iterator = TestUtils.get_sample_LineString_list(max_length, n_geometry)
+        ls_iterator = TestSplitLineString.get_sample_LineString_list(max_length, n_geometry)
 
         results = split_linestring(ls_iterator, max_length, self._pool)
         self.assertEqual(n_geometry, len(results))
@@ -139,7 +141,7 @@ class TestUtils(TestCase):
     def test_split_linestring_df_01(self):
         max_length = 2
         n_geometry = 4
-        gdf = TestUtils.get_sample_LineString_gdf_epsg_3857(max_length, n_geometry)
+        gdf = TestSplitLineString.get_sample_LineString_gdf_epsg_3857(max_length, n_geometry)
 
         # print(gdf)
 
@@ -157,7 +159,7 @@ class TestUtils(TestCase):
     def test_split_linestring_df_02(self):
         max_length = 2
         n_geometry = 500
-        gdf = TestUtils.get_sample_LineString_gdf_epsg_3857(max_length, n_geometry)
+        gdf = TestSplitLineString.get_sample_LineString_gdf_epsg_3857(max_length, n_geometry)
 
         # print(gdf)
         split_gdf = split_linestring_df(
@@ -175,7 +177,7 @@ class TestUtils(TestCase):
     def test_split_linestring_df_03(self):
         max_length = 2
         n_geometry = 4
-        gdf = TestUtils.get_sample_LineString_gdf_epsg_3857(max_length, n_geometry)
+        gdf = TestSplitLineString.get_sample_LineString_gdf_epsg_3857(max_length, n_geometry)
 
         back_up_crs = gdf.crs
         gdf = gdf.to_crs(epsg=4326)
@@ -194,3 +196,44 @@ class TestUtils(TestCase):
         self.assertEqual(expected_n_rows, split_gdf.shape[0])
         for e in split_gdf.geometry:
             self.assertAlmostEqual(e.length, max_length, places=2)
+
+class TestToChunl(TestCase):
+    def test_to_chunk_01(self):
+        a = [1, 2, 3, 4, 5, 6]
+        a_chunk = to_chunk(a, chunk_size=3)
+
+        self.assertEqual(2, len(a_chunk))
+        self.assertEqual([1, 2, 3], a_chunk[0])
+        self.assertEqual([4, 5, 6], a_chunk[1])
+
+    def test_to_chunk_02(self):
+        a = [1, 2, 3, 4, 5, 6]
+        a_chunk = to_chunk(a, chunk_size=4)
+
+        self.assertEqual(2, len(a_chunk))
+        self.assertEqual([1, 2, 3, 4], a_chunk[0])
+        self.assertEqual([5, 6], a_chunk[1])
+
+    def test_to_chunk_03(self):
+        a = [1, 2, 3, 4, 5, 6]
+        a_chunk = to_chunk(a, n_chunk=2)
+
+        self.assertEqual(2, len(a_chunk))
+        self.assertEqual([1, 2, 3], a_chunk[0])
+        self.assertEqual([4, 5, 6], a_chunk[1])
+
+    def test_to_chunk_04(self):
+        a = [1, 2, 3, 4, 5, 6]
+        pool = Pool(processes=2)
+        a_chunk = to_chunk(a, pool=pool)
+
+        self.assertEqual(2, len(a_chunk))
+        self.assertEqual([1, 2, 3], a_chunk[0])
+        self.assertEqual([4, 5, 6], a_chunk[1])
+
+        pool.close()
+
+    def test_to_chunk_05(self):
+        a = [1, 2, 3, 4, 5, 6]
+        with self.assertRaises(ValueError):
+            to_chunk(a, chunk_size=-1)

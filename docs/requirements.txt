@@ -1,0 +1,6 @@
+sphinx==2.1.2
+sphinx_rtd_theme==0.4.3
+m2r
+numpy
+pandas
+geopandas

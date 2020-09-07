@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = transpy
+omit =
+    transpy/__init__.py
+    transpy/_version.py
