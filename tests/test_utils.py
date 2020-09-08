@@ -1,17 +1,14 @@
-from typing import List
+import os
 
 import numpy as np
 import geopandas as gpd
 
-from unittest import TestCase
-from multiprocessing import Pool
-
 from pyproj import CRS
-
-from transpy import split_linestring, split_linestring_df
+from typing import List
+from multiprocessing import Pool
+from unittest import TestCase, skipIf
 from shapely.geometry import LineString, Point, MultiLineString
-
-from transpy.utils import to_chunk
+from transpy import to_chunk, file_parts, split_linestring, split_linestring_df
 
 
 class TestSplitLineString(TestCase):
@@ -70,8 +67,6 @@ class TestSplitLineString(TestCase):
         split_ls = split_linestring(geometry=ls, max_length=max_length)
 
         for e in split_ls:
-            if (np.abs(e.length - max_length) >= 0.00001):
-                print('dsfsdf', e.length,max_length, np.abs(e.length - max_length))
             self.assertTrue(
                 (np.abs(e.length - max_length) < 0.00001) or
                 e.length <= max_length
@@ -142,8 +137,6 @@ class TestSplitLineString(TestCase):
         n_geometry = 4
         gdf = TestSplitLineString.get_sample_LineString_gdf_epsg_3857(max_length, n_geometry)
 
-        # print(gdf)
-
         split_gdf = split_linestring_df(
             df=gdf,
             max_length=max_length,
@@ -181,8 +174,6 @@ class TestSplitLineString(TestCase):
         back_up_crs = gdf.crs
         gdf = gdf.to_crs(epsg=4326)
 
-        print(gdf)
-
         split_gdf = split_linestring_df(
             df=gdf,
             max_length=max_length,
@@ -196,7 +187,8 @@ class TestSplitLineString(TestCase):
         for e in split_gdf.geometry:
             self.assertAlmostEqual(e.length, max_length, places=2)
 
-class TestToChunl(TestCase):
+
+class TestToChunk(TestCase):
     def test_to_chunk_01(self):
         a = [1, 2, 3, 4, 5, 6]
         a_chunk = to_chunk(a, chunk_size=3)
@@ -236,3 +228,46 @@ class TestToChunl(TestCase):
         a = [1, 2, 3, 4, 5, 6]
         with self.assertRaises(ValueError):
             to_chunk(a, chunk_size=-1)
+
+
+class TestFileParts(TestCase):
+    @skipIf(os.name != 'nt', reason='Not Supported on non-windows machine')
+    def test_01(self):
+        path, filename, basename, ext = file_parts(r'c:\folder\subfolder\filename.ext')
+
+        self.assertEqual(r'c:\folder\subfolder', path)
+        self.assertEqual('filename.ext', filename)
+        self.assertEqual('filename', basename)
+        self.assertEqual('.ext', ext)
+
+    def test_02(self):
+        path, filename, basename, ext = file_parts(r'/folder/subfolder/filename.ext')
+
+        self.assertEqual(r'/folder/subfolder', path)
+        self.assertEqual('filename.ext', filename)
+        self.assertEqual('filename', basename)
+        self.assertEqual('.ext', ext)
+
+    def test_03(self):
+        path, filename, basename, ext = file_parts(r'filename.ext')
+
+        self.assertEqual('', path)
+        self.assertEqual('filename.ext', filename)
+        self.assertEqual('filename', basename)
+        self.assertEqual('.ext', ext)
+
+    def test_04(self):
+        path, filename, basename, ext = file_parts(r'/folder/subfolder/')
+
+        self.assertEqual(r'/folder/subfolder', path)
+        self.assertEqual('', filename)
+        self.assertEqual('', basename)
+        self.assertEqual('', ext)
+
+    def test_05(self):
+        path, filename, basename, ext = file_parts(r'/folder/subfolder')
+
+        self.assertEqual(r'/folder', path)
+        self.assertEqual('subfolder', filename)
+        self.assertEqual('subfolder', basename)
+        self.assertEqual('', ext)

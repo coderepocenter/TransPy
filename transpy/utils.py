@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -5,8 +6,14 @@ import geopandas as gpd
 from shapely import ops
 from pyproj.crs import CRS
 from multiprocessing import Pool
-from typing import Any, List, Union, Iterable
+from typing import Any, List, Tuple, Union, Iterable
 from shapely.geometry import LineString, MultiLineString
+
+
+def file_parts(filepath: str) -> Tuple[str]:
+    path, filename = os.path.split(filepath)
+    basename, ext = os.path.splitext(filename)
+    return path, filename, basename, ext
 
 
 def to_chunk(in_iterator: Iterable, **kwargs) -> List[List[Any]]:

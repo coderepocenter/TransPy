@@ -1,6 +1,6 @@
 import subprocess
-from shutil import which
 import setuptools
+from shutil import which
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -8,20 +8,20 @@ with open("README.md", "r") as fh:
 with open('requirements.txt', "r") as fh:
     requirements = fh.read().split("\n")
 
-print("requirements: ", requirements)
-
 if which('conda') is not None:
     print('CONDA was found. attempting to install requirements using conda')
+    for e in requirements:
+        print(f'\t- {e}')
     subprocess.run(
         ['conda', 'install', '-y', '-c', 'conda-forge', '-c', 'aciacs'] + requirements,
         shell=True
     )
 else:
     print('WARNING: conda command was not found. '
-          'Pip installer might not be able to install all the required packages, '
-          'such as Fiona on Windows')
+          'pip installer might not be able to install all the required packages.')
 
-print("setuptools.find_packages(): ", setuptools.find_packages())
+packages = setuptools.find_packages(exclude=['tests'])
+print("setuptools.find_packages(): ", packages)
 
 from transpy import __version__
 
@@ -33,11 +33,16 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/coderepocenter/TransPy.git",
-    packages=setuptools.find_packages(),
+    packages=packages,
     install_requires=requirements,
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6'
+    python_requires='>=3.6',
+    entry_points={
+        "console_scripts": [
+            'split_linestring = cli.split_linestring:split_linestring'
+        ]
+    }
 )

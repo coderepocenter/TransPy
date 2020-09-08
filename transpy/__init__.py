@@ -1,4 +1,6 @@
 from ._version import __version__
-from .utils import split_linestring, split_linestring_df
+from .utils import file_parts, to_chunk, split_linestring, split_linestring_df
 
-__all__ = [split_linestring, split_linestring_df]
+__all__ = [file_parts,
+           to_chunk,
+           split_linestring, split_linestring_df]
