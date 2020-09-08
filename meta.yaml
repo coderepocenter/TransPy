@@ -19,8 +19,8 @@ requirements:
     - numpy >=1.19.0
     - ezrequest
     - pandas
-    - rtree
     - geopandas
     - shapely
+    - pyproj
 about:
   summary: A collection of Python utilities assisting analytics and mapping related to transportation.

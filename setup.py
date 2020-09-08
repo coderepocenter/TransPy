@@ -1,3 +1,5 @@
+import subprocess
+from shutil import which
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -7,6 +9,17 @@ with open('requirements.txt', "r") as fh:
     requirements = fh.read().split("\n")
 
 print("requirements: ", requirements)
+
+if which('conda') is not None:
+    print('CONDA was found. attempting to install requirements using conda')
+    subprocess.run(
+        ['conda', 'install', '-y', '-c', 'conda-forge', '-c', 'aciacs'] + requirements,
+        shell=True
+    )
+else:
+    print('WARNING: conda command was not found. '
+          'Pip installer might not be able to install all the required packages, '
+          'such as Fiona on Windows')
 
 print("setuptools.find_packages(): ", setuptools.find_packages())
 

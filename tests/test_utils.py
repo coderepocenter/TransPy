@@ -1,7 +1,6 @@
 from typing import List
 
 import numpy as np
-import pandas as pd
 import geopandas as gpd
 
 from unittest import TestCase
@@ -39,7 +38,7 @@ class TestSplitLineString(TestCase):
     def get_sample_LineString_list(
             max_length: int = 2,
             n_geometry: int = 4) -> List[LineString]:
-        x = list(range(max_length, (n_geometry+1) * max_length, max_length))
+        x = list(range(max_length, (n_geometry + 1) * max_length, max_length))
         ls_iterator = [
             LineString([(0, 0), (e, 0)])
             for e in x
